@@ -1,4 +1,179 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<!-- Conteúdo completo já está disponível no canvas (omitido aqui para brevidade) -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo do Quiz - Super Mario</title>
+  <style>
+    body {
+      background: url('https://i.imgur.com/srEQHKa.jpg'); /* Exemplo de imagem de tabuleiro estilo Mario */
+      background-size: cover;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 15px;
+      display: inline-block;
+      max-width: 900px;
+      position: relative;
+    }
+    .pergunta {
+      font-size: 20px;
+      margin: 15px 0;
+      text-align: left;
+    }
+    .resposta {
+      display: block;
+      background-color: #e3e3ff;
+      padding: 10px;
+      margin: 8px auto;
+      width: 90%;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-align: left;
+    }
+    .resposta:hover {
+      background-color: #ffe066;
+    }
+    .mensagem {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .acerto {
+      background-color: #aaffaa !important;
+    }
+    .erro {
+      background-color: #ffaaaa !important;
+    }
+    #placar {
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #cronometro {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #ff3333;
+    }
+    #mario {
+      width: 60px;
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      animation: saltar 2s infinite;
+    }
+    @keyframes saltar {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+  <audio autoplay loop>
+    <source src="https://vgmsite.com/soundtracks/new-super-mario-bros/gfdcxxsk/01%20Title%20Screen.mp3" type="audio/mpeg">
+  </audio>
+  <div class="container">
+    <img id="mario" src="https://pngimg.com/uploads/mario/mario_PNG53.png" alt="Mario">
+    <h1>Desafio do Super Mario</h1>
+    <div id="placar">Jogador 1: 0 | Jogador 2: 0</div>
+    <div id="cronometro">Tempo restante: 3m 0s</div>
+    <div id="quiz"></div>
+  </div>
+  <script>
+    let jogadorAtual = 1;
+    let placares = { 1: 0, 2: 0 };
+    let tempo = 180;
+    let intervalo;
+
+    const frasesAcerto = [
+      "Parabéns! Avance 1 casa!",
+      "Boa! Avance 2 casas!",
+      "Excelente resposta! Continue jogando!"
+    ];
+
+    const frasesErro = [
+      "Ops! Você errou. Fique parado!",
+      "Não foi dessa vez. Passe a vez!",
+      "Resposta incorreta. Não avance!"
+    ];
+
+    const perguntas = [
+      {
+        pergunta: "Maria criou um sistema de filtragem acessível e sustentável. Em qual fase da jornada empreendedora ela está?",
+        opcoes: [
+          "A) Você: fase de autoconhecimento e identificação de oportunidades.",
+          "B) Modelando: estruturação e validação do modelo.",
+          "C) Operando: projeto funcionando e gerando impacto.",
+          "D) Decolando: ajustes e primeiros contatos com o mercado."
+        ],
+        correta: 2
+      }
+    ];
+
+    const quiz = document.getElementById('quiz');
+    const placar = document.getElementById('placar');
+    const cronometro = document.getElementById('cronometro');
+
+    function atualizarPlacar() {
+      placar.innerText = `Jogador 1: ${placares[1]} | Jogador 2: ${placares[2]}`;
+    }
+
+    function atualizarTempo() {
+      tempo--;
+      cronometro.innerText = `Tempo restante: ${Math.floor(tempo / 60)}m ${tempo % 60}s`;
+      if (tempo <= 0) {
+        clearInterval(intervalo);
+        cronometro.innerText = "Tempo esgotado!";
+        desabilitarRespostas();
+      }
+    }
+
+    function desabilitarRespostas() {
+      document.querySelectorAll('.resposta').forEach(btn => btn.style.pointerEvents = 'none');
+    }
+
+    perguntas.forEach((q, index) => {
+      const bloco = document.createElement('div');
+      bloco.className = 'pergunta';
+      bloco.innerHTML = `<strong>${index + 1}.</strong> ${q.pergunta}`;
+
+      const msg = document.createElement('div');
+      msg.className = 'mensagem';
+      bloco.appendChild(msg);
+
+      q.opcoes.forEach((op, i) => {
+        const botao = document.createElement('div');
+        botao.className = 'resposta';
+        botao.innerText = op;
+        botao.onclick = () => {
+          if (botao.classList.contains('acerto') || botao.classList.contains('erro')) return;
+
+          if (i === q.correta) {
+            botao.classList.add('acerto');
+            placares[jogadorAtual]++;
+            msg.innerText = frasesAcerto[Math.floor(Math.random() * frasesAcerto.length)];
+          } else {
+            botao.classList.add('erro');
+            msg.innerText = frasesErro[Math.floor(Math.random() * frasesErro.length)];
+          }
+
+          atualizarPlacar();
+          jogadorAtual = jogadorAtual === 1 ? 2 : 1;
+        };
+        bloco.appendChild(botao);
+      });
+
+      quiz.appendChild(bloco);
+    });
+
+    intervalo = setInterval(atualizarTempo, 1000);
+    atualizarPlacar();
+  </script>
+</body>
 </html>
